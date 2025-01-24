@@ -1,7 +1,7 @@
 <template>
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mx-auto p-8">
     <!-- Controls Section -->
-    <div class="mb-8 flex flex-col items-center gap-4 p-4 bg-gray-50 rounded-lg shadow-sm">
+    <div class="mb-8 flex flex-col items-center gap-4 p-4 rounded-lg shadow-sm">
       <h1 class="text-2xl font-bold text-gray-800 mb-4">Générateur de mesures</h1>
       <div class="flex flex-wrap gap-4 justify-center">
         <USelect 
