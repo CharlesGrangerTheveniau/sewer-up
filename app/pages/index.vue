@@ -1,4 +1,4 @@
-<template>
+<template ref="document">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mx-auto p-8">
     <!-- Controls Section -->
     <div class="mb-8 flex flex-col items-center gap-4 p-4 rounded-lg shadow-sm">
@@ -30,18 +30,29 @@
       
     </div>
 
+    <div v-if="measures" class="flex items-center justify-end w-full mb-4">
+      <UButton 
+        :loading="exportInProgress"
+        label="Exporter en PDF"
+        size="lg"
+        icon="i-heroicons-document-arrow-down"
+        @click="exportAsPDF"
+      />
+    </div>
+
     <!-- Measurements Display -->
-    <div v-if="measures" class="grid grid-cols-1 md:grid-cols-2 gap-8">
+    <div v-if="measures" ref="measurementsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-8">
       
 
       <!-- Pantalon Section -->
 
       <div class="flex flex-col h-full gap-8">
         <div class="bg-[var(--ui-bg-elevated)] p-6 rounded-lg shadow-md">
-          <UCollapsible @update:open="rotateIcon">
+          <UCollapsible @update:open="rotateIcon" v-model:open="baseCalculationsOpen">
             <div class="flex flex-row justify-between items-centerw-full">
               <h2 class="text-xl font-semibold text-[var(--ui-text)]">Bases de calculs</h2>
-              <UIcon 
+              <UIcon
+                v-if="!hideForPrint"
                 name="i-heroicons-chevron-down" 
                 size="24" 
                 class="transition-transform duration-200"
@@ -52,6 +63,7 @@
 
               <div class="flex flex-col gap-4 mt-4">
                 <UAlert
+                  v-if="!hideForPrint"
                   color="info"
                   variant="soft"
                   title="Une mesure personalisée ?"
@@ -233,14 +245,18 @@
 </template>
 
 <script setup lang="ts">
-
+import { ref, computed, watch } from 'vue'
 import { potentialSizes } from "~/services/types"
 import { generateMeasurements, BASE_MEASUREMENTS } from "~/services/standardMeasurements"
 import MeasurementItem from "~/components/MesurementItem.vue"
 
+  const hideForPrint = ref(false)
+
   const gender = ref<Gender>(null)
   const size = ref<Size>(null)
   const measures = ref<Cotes | null>(null)
+  const measurementsContainer = ref(null)
+  const exportInProgress = ref(false)
   const formattedSizes = computed(() => {
     return potentialSizes.map(size => ({
       label: size < 24 ? `${size} mois` : `${size / 12} ans`,
@@ -313,19 +329,95 @@ import MeasurementItem from "~/components/MesurementItem.vue"
     const definedGender = size.value < 24 ? "baby" : gender.value
     measures.value = generateMeasurements(size.value, definedGender, customBase.value)
     console.log(measures.value)
+
+
   }
 
-  const printMeasurements = () => {
-    window.print();
-  };
+  const exportAsPDF = async () => {
+    exportInProgress.value = true
+    hideForPrint.value = true
+    baseCalculationsOpen.value = true
+    
+    if (import.meta.server) return
+    
+    // Wait for collapsible animation to complete
+    await new Promise(resolve => setTimeout(resolve, 2000))
+    
+    const html2pdf = (await import('html2pdf.js')).default
+    
+    const element = measurementsContainer.value
+    if (!element) return
 
-  const exportAsPDF = () => {
-    // Implementation for PDF export
-  };
-
-  const exportAsImage = () => {
-    // Implementation for image export
-  };
+    // Create a clone of the element for PDF generation
+    const clone = element.cloneNode(true)
+    clone.style.backgroundColor = 'white'
+    clone.style.padding = '20px'
+    clone.style.height = 'auto'
+    clone.style.minHeight = 'fit-content'
+    clone.style.overflow = 'visible'
+    
+    // Ensure all collapsible content is visible
+    clone.querySelectorAll('[class*="collapsible"]').forEach(el => {
+      el.style.height = 'auto'
+      el.style.overflow = 'visible'
+      el.style.opacity = '1'
+      el.style.visibility = 'visible'
+    })
+    
+    // Replace CSS variables with actual colors
+    clone.querySelectorAll('[class*="bg-[var(--ui-"]').forEach(el => {
+      el.style.backgroundColor = 'white'
+      el.style.border = '1px solid #e5e7eb'
+      el.style.height = 'auto'
+      el.style.minHeight = 'fit-content'
+    })
+    clone.querySelectorAll('[class*="text-[var(--ui-"]').forEach(el => {
+      el.style.color = '#1f2937'
+    })
+    
+    const opt = {
+      margin: [15, 10],
+      filename: `mesures-${size.value}${gender.value ? `-${gender.value}` : ''}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { 
+        scale: 1,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+        logging: false,
+        removeContainer: true,
+        height: element.scrollHeight,
+        windowHeight: element.scrollHeight
+      },
+      jsPDF: { 
+        unit: 'mm', 
+        format: 'a4', 
+        orientation: 'portrait',
+        compress: true
+      }
+    }
+    
+    // Create a temporary container with proper sizing
+    const container = document.createElement('div')
+    container.style.position = 'absolute'
+    container.style.left = '-9999px'
+    container.style.top = '0'
+    container.style.width = element.offsetWidth + 'px'
+    container.style.height = 'auto'
+    container.style.minHeight = 'fit-content'
+    container.appendChild(clone)
+    document.body.appendChild(container)
+    
+    try {
+      await html2pdf().set(opt).from(clone).save()
+    } finally {
+      // Clean up
+      document.body.removeChild(container)
+      hideForPrint.value = false
+      baseCalculationsOpen.value = false
+      exportInProgress.value = false
+    }
+  }
+ 
 
 </script>
 
