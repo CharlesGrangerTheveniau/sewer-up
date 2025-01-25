@@ -8,7 +8,7 @@ interface BaseTableData {
     long_cote_pantalon: number;
 }
 
-const BASE_MEASUREMENTS: Record<Gender, Partial<Record<Size, BaseTableData>>> = {
+export const BASE_MEASUREMENTS: Record<Gender, Partial<Record<Size, BaseTableData>>> = {
     "baby": {
         1: {
             stature: 56,
@@ -269,12 +269,18 @@ const BASE_MEASUREMENTS: Record<Gender, Partial<Record<Size, BaseTableData>>> = 
     }
 };
 
-export function generateMeasurements(age: Size, gender: Gender = "baby"): Cotes {
-    console.log(age, gender)
-    const base = BASE_MEASUREMENTS[gender][age];
-    if (!base) {
+export function generateMeasurements(age: Size, gender: Gender = "baby", customBase?: BaseTableData): Cotes {
+    console.log('generating measurements for ', age, gender, customBase)
+    const baseData = BASE_MEASUREMENTS[gender][age];
+    
+    if (!baseData) {
         throw new Error(`No base measurements found for age ${age} and gender ${gender}`);
     }
+
+    const base = {
+        ...baseData,
+        ...customBase
+    };
 
     // Helper function to round to 1 decimal place
     const round = (num: number) => Math.round(num * 10) / 10;
@@ -334,8 +340,8 @@ export function generateMeasurements(age: Size, gender: Gender = "baby"): Cotes 
             hauteur_taille_sol: round(base.long_cote_pantalon),
             hauteur_interieur_jambe: round(base.long_cote_pantalon / 2),
             montant: {
-                total: round(base.tour_des_hanches / 3),
-                plus_un: round((base.tour_des_hanches / 3) + 1)
+                total: round(base.long_cote_pantalon - (base.long_cote_pantalon / 3)),
+                plus_un: round(base.long_cote_pantalon - (base.long_cote_pantalon / 3)) + 1
             },
             largeur_bas_pantalon: round(base.tour_des_hanches / 4),
             passage_du_pied: round((base.tour_des_hanches / 4) - 1),

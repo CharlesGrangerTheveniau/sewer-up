@@ -2,7 +2,7 @@
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mx-auto p-8">
     <!-- Controls Section -->
     <div class="mb-8 flex flex-col items-center gap-4 p-4 rounded-lg shadow-sm">
-      <h1 class="text-2xl font-bold text-gray-800 mb-4">Générateur de mesures</h1>
+      <h1 class="text-2xl font-bold text-gray-800 mb-4 gradient-text-primary">Générateur de mesures</h1>
       <div class="flex flex-wrap gap-4 justify-center">
         <USelect 
           v-model="size" 
@@ -27,17 +27,141 @@
           @click="provideMeasurements"
         />
       </div>
+      
     </div>
 
     <!-- Measurements Display -->
     <div v-if="measures" class="grid grid-cols-1 md:grid-cols-2 gap-8">
+      
+
+      <!-- Pantalon Section -->
+
+      <div class="flex flex-col h-full gap-8">
+        <div class="bg-[var(--ui-bg-elevated)] p-6 rounded-lg shadow-md">
+          <UCollapsible @update:open="rotateIcon">
+            <div class="flex flex-row justify-between items-centerw-full">
+              <h2 class="text-xl font-semibold text-[var(--ui-text)]">Bases de calculs</h2>
+              <UIcon 
+                name="i-heroicons-chevron-down" 
+                size="24" 
+                class="transition-transform duration-200"
+                :class="{ 'rotate-180': baseCalculationsOpen }"
+              />
+            </div>
+            <template #content>
+
+              <div class="flex flex-col gap-4 mt-4">
+                <UAlert
+                  color="info"
+                  variant="soft"
+                  title="Une mesure personalisée ?"
+                  description="Vous pouvez modifier les bases de calculs dans la configuration de l'application."
+                  icon="i-heroicons:information-circle"
+                />
+                <div 
+                  v-for="customizable in customizables" 
+                  :key="customizable.value" 
+                  class="flex md:flex-row flex-col stretch justify-between gap-2">
+                  <span class="font-medium text-[var(--ui-text)]">{{ customizable.label }}</span>
+
+                  
+
+                  <UInput 
+                    v-if="customBase" 
+                    v-model="customBase[customizable.value]" 
+                    type="number" 
+                    :ui="{
+                      base: 'pe-10',
+                      trailing: 'ml-1 pe-1'
+                    }"
+                    @change="provideMeasurements">
+                    <template #trailing>
+                      <UBadge color="neutral" variant="soft">cm</UBadge>
+                    </template>
+                  </UInput>
+
+                  <div v-else class="w-[30px]">
+                    <svg viewBox="0 0 800 800" xmlns="http://www.w3.org/2000/svg">
+                      <circle 
+                        class="spin2" cx="400" cy="400" fill="none"
+                        r="200" stroke-width="50" stroke="var(--ui-color-primary-500)"
+                        stroke-dasharray="700 1400"
+                        stroke-linecap="round" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </template>
+          </UCollapsible>
+          
+          
+          
+        </div>
+        <div class="bg-[var(--ui-bg-elevated)] p-6 rounded-lg shadow-md">
+          <h2 class="text-xl font-semibold mb-4 text-[var(--ui-text)] border-b pb-2">Pantalon</h2>
+          <div class="grid gap-3">
+            <MeasurementItem 
+              label="Tour de taille" 
+              :value="measures.pantalon.tour_de_taille.total"
+              :calculations="{
+                '1/4 + 1cm': measures.pantalon.tour_de_taille.quart_plus_un,
+                '1/8': measures.pantalon.tour_de_taille.huitieme,
+                '1/16': measures.pantalon.tour_de_taille.seizieme
+              }"
+            />
+            <MeasurementItem 
+              label="Hauteur taille-genou" 
+              :value="measures.pantalon.hauteur_taille_genou"
+            />
+            <MeasurementItem 
+              label="Hauteur taille-sol" 
+              :value="measures.pantalon.hauteur_taille_sol"
+            />
+            <MeasurementItem 
+              label="Hauteur intérieur jambe" 
+              :value="measures.pantalon.hauteur_interieur_jambe"
+            />
+            <MeasurementItem 
+              label="Montant" 
+              :value="measures.pantalon.montant.total"
+            />
+            <MeasurementItem 
+              label="Montant + 1cm" 
+              :value="measures.pantalon.montant.plus_un"
+            />
+            <MeasurementItem 
+              label="Largeur bas de pantalon" 
+              :value="measures.pantalon.largeur_bas_pantalon"
+            />
+            <MeasurementItem 
+              label="Passage du pied" 
+              :value="measures.pantalon.passage_du_pied"
+            />
+            <MeasurementItem 
+              label="Longueur du pied" 
+              :value="measures.pantalon.longueur_du_pied"
+            />
+            <MeasurementItem 
+              label="Hauteur du bassin" 
+              :value="measures.pantalon.hauteur_du_bassin"
+            />
+            <MeasurementItem 
+              label="Contour du bassin" 
+              :value="measures.pantalon.contour_bassin"
+              />
+          </div>
+        </div>
+      </div>
+      
+
       <!-- Corsage Section -->
-      <div class="bg-white p-6 rounded-lg shadow-sm">
-        <h2 class="text-xl font-semibold mb-4 text-gray-700 border-b pb-2">Corsage</h2>
+      <div class="bg-[var(--ui-bg-elevated)] p-6 rounded-lg shadow-md">
+        <h2 class="text-xl font-semibold mb-4 text-[var(--ui-text)] border-b pb-2">Corsage</h2>
         <div class="grid gap-3">
           <MeasurementItem label="Stature" :value="measures.corsage.stature" />
           <MeasurementItem 
-            label="Tour de poitrine" 
+            label="Tour de poitrine"
+            
             :value="measures.corsage.tour_de_poitrine.total"
             :calculations="{
               '1/2': measures.corsage.tour_de_poitrine.demi,
@@ -99,62 +223,6 @@
           <MeasurementItem label="Hauteur tête" :value="measures.corsage.hauteur_tete" />
         </div>
       </div>
-
-      <!-- Pantalon Section -->
-      <div class="bg-white p-6 rounded-lg shadow-sm">
-        <h2 class="text-xl font-semibold mb-4 text-gray-700 border-b pb-2">Pantalon</h2>
-        <div class="grid gap-3">
-          <MeasurementItem 
-            label="Tour de taille" 
-            :value="measures.pantalon.tour_de_taille.total"
-            :calculations="{
-              '1/4 + 1cm': measures.pantalon.tour_de_taille.quart_plus_un,
-              '1/8': measures.pantalon.tour_de_taille.huitieme,
-              '1/16': measures.pantalon.tour_de_taille.seizieme
-            }"
-          />
-          <MeasurementItem 
-            label="Hauteur taille-genou" 
-            :value="measures.pantalon.hauteur_taille_genou"
-          />
-          <MeasurementItem 
-            label="Hauteur taille-sol" 
-            :value="measures.pantalon.hauteur_taille_sol"
-          />
-          <MeasurementItem 
-            label="Hauteur intérieur jambe" 
-            :value="measures.pantalon.hauteur_interieur_jambe"
-          />
-          <MeasurementItem 
-            label="Montant" 
-            :value="measures.pantalon.montant.total"
-          />
-          <MeasurementItem 
-            label="Montant + 1cm" 
-            :value="measures.pantalon.montant.plus_un"
-          />
-          <MeasurementItem 
-            label="Largueur bas de pantalon" 
-            :value="measures.pantalon.longueur_bas_pantalon"
-          />
-          <MeasurementItem 
-            label="Passage du pied" 
-            :value="measures.pantalon.passage_du_pied"
-          />
-          <MeasurementItem 
-            label="Longueur du pied" 
-            :value="measures.pantalon.longueur_du_pied"
-          />
-          <MeasurementItem 
-            label="hauteur du bassin" 
-            :value="measures.pantalon.hauteur_du_bassin"
-          />
-          <MeasurementItem 
-            label="Contour du bassin" 
-            :value="measures.pantalon.contour_du_bassin"
-          />
-        </div>
-      </div>
     </div>
 
     <!-- <div v-if="error" class="error-state">
@@ -167,7 +235,7 @@
 <script setup lang="ts">
 
 import { potentialSizes } from "~/services/types"
-import { generateMeasurements } from "~/services/standardMeasurements"
+import { generateMeasurements, BASE_MEASUREMENTS } from "~/services/standardMeasurements"
 import MeasurementItem from "~/components/MesurementItem.vue"
 
   const gender = ref<Gender>(null)
@@ -180,6 +248,58 @@ import MeasurementItem from "~/components/MesurementItem.vue"
     }))
   })
 
+  const baseCalculationsOpen = ref(false)
+
+  const rotateIcon = (open: boolean) => {
+    baseCalculationsOpen.value = open
+  }
+
+  const customizables = [
+    {
+      label: "Stature",
+      value: "stature",
+    },
+    {
+      label: "Tour de poitrine",
+      value: "tour_de_poitrine",
+    },
+    {
+      label: "Tour de taille",
+      value: "tour_de_taille",
+    },
+    {
+      label: "Tour des hanches",
+      value: "tour_des_hanches",
+    },
+    {
+      label: "Longueur côte pantalon",
+      value: "long_cote_pantalon",
+    },
+  ]
+
+  const customBase = ref<BaseTableData | null>(null)
+
+  watch(size, () => {
+    console.log('size changed', size.value)
+    console.log('gender', gender.value)
+    if (size.value > 18 && gender.value) {
+      customBase.value = BASE_MEASUREMENTS[gender.value || 'baby'][size.value]
+    } else {
+      gender.value = null
+      customBase.value = BASE_MEASUREMENTS['baby'][size.value]
+    }
+    
+    console.log('customBase', customBase.value)
+  })
+
+  watch(gender, () => {
+    console.log('gender changed', gender.value)
+    customBase.value = BASE_MEASUREMENTS[gender.value ?? 'baby'][size.value]
+    console.log('customBase', customBase.value)
+  })
+
+  
+
   const formattedGender = computed(() => {
     return [
       { label: 'Garçon', value: 'male' },
@@ -191,7 +311,7 @@ import MeasurementItem from "~/components/MesurementItem.vue"
 
   const provideMeasurements = () => {
     const definedGender = size.value < 24 ? "baby" : gender.value
-    measures.value = generateMeasurements(size.value, definedGender)
+    measures.value = generateMeasurements(size.value, definedGender, customBase.value)
     console.log(measures.value)
   }
 
@@ -231,5 +351,33 @@ import MeasurementItem from "~/components/MesurementItem.vue"
   .measurement-grid {
     grid-template-columns: repeat(3, 1fr);
   }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes spin2 {
+  0% {
+    stroke-dasharray: 1, 800;
+    stroke-dashoffset: 0;
+  }
+  50% {
+    stroke-dasharray: 400, 400;
+    stroke-dashoffset: -200px;
+  }
+  100% {
+    stroke-dasharray: 800, 1;
+    stroke-dashoffset: -800px;
+  }
+}
+
+.spin2 {
+  transform-origin: center;
+  animation: spin2 1.5s ease-in-out infinite,
+    spin 2s linear infinite;
+  animation-direction: alternate;
 }
 </style>
