@@ -2,8 +2,8 @@
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mx-auto p-8">
     <!-- Controls Section -->
     <div class="mb-8 flex flex-col items-center gap-4 p-4 rounded-lg shadow-sm">
-      <h1 class="text-2xl font-bold text-gray-800 mb-4 gradient-text-primary">Générateur de mesures</h1>
-      <div class="flex flex-wrap gap-4 justify-center">
+      <h1 class="text-2xl font-bold text-gray-800 gradient-text-primary">Générateur de mesures</h1>
+      <div v-if="!measures" class="flex flex-wrap gap-4 justify-center">
         <USelect 
           v-model="size" 
           :items="formattedSizes" 
@@ -48,7 +48,7 @@
 
       <div class="flex flex-col h-full gap-8">
         <div class="bg-[var(--ui-bg-elevated)] p-6 rounded-lg shadow-md">
-          <UCollapsible @update:open="rotateIcon" v-model:open="baseCalculationsOpen">
+          <UCollapsible v-model:open="baseCalculationsOpen" @update:open="rotateIcon">
             <div class="flex flex-row justify-between items-centerw-full">
               <h2 class="text-xl font-semibold text-[var(--ui-text)]">Bases de calculs</h2>
               <UIcon
@@ -70,13 +70,37 @@
                   description="Vous pouvez modifier les bases de calculs dans la configuration de l'application."
                   icon="i-heroicons:information-circle"
                 />
+
+                <div class="flex md:flex-row flex-col stretch justify-between gap-2">
+                  <span class="font-medium text-[var(--ui-text)]">Age</span>
+                  <USelect 
+                    v-model="size" 
+                    :items="formattedSizes" 
+                    size="lg"
+                    placeholder="Sélectionner la taille"
+                    class="min-w-[200px]"
+                    @change="provideMeasurements"
+                  />
+                </div>
+
+                <div v-if="size > 18" class="flex md:flex-row flex-col stretch justify-between gap-2">
+                  <span class="font-medium text-[var(--ui-text)]">Genre</span>
+                  <USelect 
+                    v-model="gender" 
+                    :items="formattedGender" 
+                    size="lg"
+                    placeholder="Sélectionner le sexe"
+                    class="min-w-[200px]"
+                    @change="provideMeasurements"
+                  />
+                </div>
+
+
                 <div 
                   v-for="customizable in customizables" 
                   :key="customizable.value" 
                   class="flex md:flex-row flex-col stretch justify-between gap-2">
                   <span class="font-medium text-[var(--ui-text)]">{{ customizable.label }}</span>
-
-                  
 
                   <UInput 
                     v-if="customBase" 
@@ -112,55 +136,68 @@
         <div class="bg-[var(--ui-bg-elevated)] p-6 rounded-lg shadow-md">
           <h2 class="text-xl font-semibold mb-4 text-[var(--ui-text)] border-b pb-2">Pantalon</h2>
           <div class="grid gap-3">
-            <MeasurementItem 
-              label="Tour de taille" 
-              :value="measures.pantalon.tour_de_taille.total"
-              :calculations="{
-                '1/4 + 1cm': measures.pantalon.tour_de_taille.quart_plus_un,
-                '1/8': measures.pantalon.tour_de_taille.huitieme,
-                '1/16': measures.pantalon.tour_de_taille.seizieme
-              }"
-            />
-            <MeasurementItem 
-              label="Hauteur taille-genou" 
-              :value="measures.pantalon.hauteur_taille_genou"
-            />
-            <MeasurementItem 
-              label="Hauteur taille-sol" 
-              :value="measures.pantalon.hauteur_taille_sol"
-            />
-            <MeasurementItem 
-              label="Hauteur intérieur jambe" 
-              :value="measures.pantalon.hauteur_interieur_jambe"
-            />
-            <MeasurementItem 
-              label="Montant" 
-              :value="measures.pantalon.montant.total"
-            />
-            <MeasurementItem 
-              label="Montant + 1cm" 
-              :value="measures.pantalon.montant.plus_un"
-            />
-            <MeasurementItem 
-              label="Largeur bas de pantalon" 
-              :value="measures.pantalon.largeur_bas_pantalon"
-            />
-            <MeasurementItem 
-              label="Passage du pied" 
-              :value="measures.pantalon.passage_du_pied"
-            />
-            <MeasurementItem 
-              label="Longueur du pied" 
-              :value="measures.pantalon.longueur_du_pied"
-            />
-            <MeasurementItem 
-              label="Hauteur du bassin" 
-              :value="measures.pantalon.hauteur_du_bassin"
-            />
-            <MeasurementItem 
-              label="Contour du bassin" 
-              :value="measures.pantalon.contour_bassin"
+            <div v-if="customBase">
+              <MeasurementItem 
+                label="Tour de taille"
+                :value="measures.pantalon.tour_de_taille.total"
+                :calculations="{
+                  '1/4 + 1cm': measures.pantalon.tour_de_taille.quart_plus_un,
+                  '1/8': measures.pantalon.tour_de_taille.huitieme,
+                  '1/16': measures.pantalon.tour_de_taille.seizieme
+                }"
               />
+              <MeasurementItem 
+                label="Hauteur taille-genou" 
+                :value="measures.pantalon.hauteur_taille_genou"
+              />
+              <MeasurementItem 
+                label="Hauteur taille-sol" 
+                :value="measures.pantalon.hauteur_taille_sol"
+              />
+              <MeasurementItem 
+                label="Hauteur intérieur jambe"
+                details="La hauteur intérieur jambe mesure la distance entre la taille et le bas de la jambe. Cette mesure est essentielle pour ajuster la longueur du pantalon."
+                :value="measures.pantalon.hauteur_interieur_jambe"
+              />
+              <MeasurementItem 
+                label="Montant" 
+                :value="measures.pantalon.montant.total"
+                :calculations="{
+                  '+1cm': measures.pantalon.montant.plus_un
+                }"
+              />
+              <MeasurementItem 
+                label="Largeur bas de pantalon" 
+                :value="measures.pantalon.largeur_bas_pantalon"
+              />
+              <MeasurementItem 
+                label="Passage du pied" 
+                details="Le passage du pied mesure la largeur du bas du pantalon. Cette mesure est essentielle pour ajuster la largeur du pantalon."
+                :value="measures.pantalon.passage_du_pied"
+              />
+              <MeasurementItem 
+                label="Longueur du pied" 
+                :value="measures.pantalon.longueur_du_pied"
+              />
+              <MeasurementItem 
+                label="Hauteur du bassin" 
+                :value="measures.pantalon.hauteur_du_bassin"
+              />
+              <MeasurementItem 
+                label="Contour du bassin"
+                details="Le contour du bassin mesure la largeur du bassin. Cette mesure est essentielle pour ajuster la largeur du pantalon."
+                :value="measures.pantalon.contour_bassin"
+                />
+            </div>
+            <div v-else class="w-[60px] place-self-center">
+              <svg viewBox="0 0 800 800" xmlns="http://www.w3.org/2000/svg">
+                <circle 
+                  class="spin2" cx="400" cy="400" fill="none"
+                  r="200" stroke-width="50" stroke="var(--ui-color-primary-500)"
+                  stroke-dasharray="700 1400"
+                  stroke-linecap="round" />
+              </svg>
+            </div>
           </div>
         </div>
       </div>
@@ -169,70 +206,92 @@
       <!-- Corsage Section -->
       <div class="bg-[var(--ui-bg-elevated)] p-6 rounded-lg shadow-md">
         <h2 class="text-xl font-semibold mb-4 text-[var(--ui-text)] border-b pb-2">Corsage</h2>
-        <div class="grid gap-3">
-          <MeasurementItem label="Stature" :value="measures.corsage.stature" />
-          <MeasurementItem 
-            label="Tour de poitrine"
-            
-            :value="measures.corsage.tour_de_poitrine.total"
-            :calculations="{
-              '1/2': measures.corsage.tour_de_poitrine.demi,
-              '1/4': measures.corsage.tour_de_poitrine.quart
-            }"
-          />
-          <MeasurementItem 
-            label="Tour de taille" 
-            :value="measures.corsage.tour_de_taille.total"
-            :calculations="{
-              '1/2': measures.corsage.tour_de_taille.demi,
-              '1/4': measures.corsage.tour_de_taille.quart
-            }"
-          />
-          <MeasurementItem 
-            label="Longueur taille dos" 
-            :value="measures.corsage.longueur_taille_dos.total"
-            :calculations="{
-              '1/2': measures.corsage.longueur_taille_dos.demi,
-              '+1': measures.corsage.longueur_taille_dos.demi_plus_un
-            }"
-          />
-          <MeasurementItem 
-            label="Longueur taille devant" 
-            :value="measures.corsage.longueur_taille_devant.total"
-            :calculations="{
-              '-1cm': measures.corsage.longueur_taille_devant.moins_un
-            }"
-          />
-          <MeasurementItem 
-            label="Encolure" 
-            :value="measures.corsage.encolure.total"
-            :calculations="{
-              '1/6': measures.corsage.encolure.sixieme,
-              '+0.75': measures.corsage.encolure.sixieme_plus_075,
-              '+0.50': measures.corsage.encolure.sixieme_plus_050
-            }"
-          />
-          <MeasurementItem label="Longueur d'épaule" :value="measures.corsage.longueur_epaule" />
-          <MeasurementItem 
-            label="Carrure devant" 
-            :value="measures.corsage.carrure_devant.total"
-            :calculations="{
-              '1/2': measures.corsage.carrure_devant.demi
-            }"
-          />
-          <MeasurementItem 
-            label="Carrure dos" 
-            :value="measures.corsage.carrure_dos.total"
-            :calculations="{
-              '1/2': measures.corsage.carrure_dos.demi
-            }"
-          />
-          <MeasurementItem label="Longueur épaule coude" :value="measures.corsage.longueur_epaule_coude" />
-          <MeasurementItem label="Longueur épaule poignet" :value="measures.corsage.longueur_epaule_poignet" />
-          <MeasurementItem label="Contour bras" :value="measures.corsage.contour_bras" />
-          <MeasurementItem label="Passage de la main" :value="measures.corsage.passage_de_la_main" />
-          <MeasurementItem label="Contour tête" :value="measures.corsage.contour_tete" />
-          <MeasurementItem label="Hauteur tête" :value="measures.corsage.hauteur_tete" />
+        <div class="grid gap-3 h-full">
+          <div v-if="customBase">
+            <MeasurementItem 
+              label="Stature" 
+              :value="measures.corsage.stature"
+              details="La stature indique la hauteur totale du sujet. C'est une mesure importante pour déterminer les proportions générales." />
+            <MeasurementItem 
+              label="Tour de poitrine"
+              :value="measures.corsage.tour_de_poitrine.total"
+              :calculations="{
+                '1/2': measures.corsage.tour_de_poitrine.demi,
+                '1/4': measures.corsage.tour_de_poitrine.quart
+              }"
+            />
+            <MeasurementItem 
+              label="Tour de taille" 
+              :value="measures.corsage.tour_de_taille.total"
+              details="Le tour de taille capture la circonférence de la taille, généralement à la hauteur du nombril. Cette mesure aide à bien ajuster la partie supérieure du pantalon."
+              :calculations="{
+                '1/2': measures.corsage.tour_de_taille.demi,
+                '1/4': measures.corsage.tour_de_taille.quart
+              }"
+            />
+            <MeasurementItem 
+              label="Longueur taille dos" 
+              :value="measures.corsage.longueur_taille_dos.total"
+              details="La longueur taille dos donne la distance entre la nuque et la taille au niveau du dos. Cela contribue à la bonne chute du vêtement."
+              :calculations="{
+                '1/2': measures.corsage.longueur_taille_dos.demi,
+                '+1': measures.corsage.longueur_taille_dos.demi_plus_un
+              }"
+            />
+            <MeasurementItem 
+              label="Longueur taille devant"
+              details="La longueur taille devant mesure la distance entre le cou et la taille à l'avant. Cette valeur, combinée à la mesure au dos, permet d'obtenir la longueur totale du buste et contribue à l bonne chute du vêtement."
+              :value="measures.corsage.longueur_taille_devant.total"
+              :calculations="{
+                '-1cm': measures.corsage.longueur_taille_devant.moins_un
+              }"
+            />
+            <MeasurementItem 
+              label="Encolure"
+              :value="measures.corsage.encolure.total"
+              details="L'encolure indique la circonférence du cou. C'est un élément essentiel pour ajuster le col du vêtement."
+              :calculations="{
+                '1/6': measures.corsage.encolure.sixieme,
+                '+0.75': measures.corsage.encolure.sixieme_plus_075,
+                '+0.50': measures.corsage.encolure.sixieme_plus_050
+              }"
+            />
+            <MeasurementItem 
+              label="Longueur d'épaule" 
+              :value="measures.corsage.longueur_epaule"
+              details="La longueur d'épaule donne la distance entre le cou et le sommet de l'épaule. Cette valeur aide à bien positionner les coutures des manches."
+            />
+            <MeasurementItem 
+              label="Carrure devant" 
+              :value="measures.corsage.carrure_devant.total"
+              details="La carrure devant et la carrure dos mesurent la largeur du haut du corps, respectivement à l'avant et à l'arrière. Cela contribue à l'ajustement général du vêtement."
+              :calculations="{
+                '1/2': measures.corsage.carrure_devant.demi
+              }"
+            />
+            <MeasurementItem 
+              label="Carrure dos" 
+              :value="measures.corsage.carrure_dos.total"
+              :calculations="{
+                '1/2': measures.corsage.carrure_dos.demi
+              }"
+            />
+            <MeasurementItem label="Longueur épaule coude" :value="measures.corsage.longueur_epaule_coude" />
+            <MeasurementItem label="Longueur épaule poignet" :value="measures.corsage.longueur_epaule_poignet" />
+            <MeasurementItem label="Contour bras" :value="measures.corsage.contour_bras" />
+            <MeasurementItem label="Passage de la main" :value="measures.corsage.passage_de_la_main" />
+            <MeasurementItem label="Contour tête" :value="measures.corsage.contour_tete" />
+            <MeasurementItem label="Hauteur tête" :value="measures.corsage.hauteur_tete" />
+          </div>
+          <div v-else class="w-[60px] place-self-center">
+            <svg viewBox="0 0 800 800" xmlns="http://www.w3.org/2000/svg">
+              <circle 
+                class="spin2" cx="400" cy="400" fill="none"
+                r="200" stroke-width="50" stroke="var(--ui-color-primary-500)"
+                stroke-dasharray="700 1400"
+                stroke-linecap="round" />
+            </svg>
+          </div>
         </div>
       </div>
     </div>
@@ -326,6 +385,7 @@ import MeasurementItem from "~/components/MesurementItem.vue"
 
 
   const provideMeasurements = () => {
+    baseCalculationsOpen.value = true
     const definedGender = size.value < 24 ? "baby" : gender.value
     measures.value = generateMeasurements(size.value, definedGender, customBase.value)
     console.log(measures.value)
