@@ -340,8 +340,8 @@ export function generateMeasurements(age: Size, gender: Gender = "baby", customB
             hauteur_taille_sol: round(base.long_cote_pantalon),
             hauteur_interieur_jambe: round(base.long_cote_pantalon / 2),
             montant: {
-                total: round(base.long_cote_pantalon - (base.long_cote_pantalon / 3)),
-                plus_un: round(base.long_cote_pantalon - (base.long_cote_pantalon / 3)) + 1
+                total: round(base.long_cote_pantalon - (base.long_cote_pantalon / 2)),
+                plus_un: round(base.long_cote_pantalon - (base.long_cote_pantalon / 2)) + 1
             },
             largeur_bas_pantalon: round(base.tour_des_hanches / 4),
             passage_du_pied: round((base.tour_des_hanches / 4) - 1),
